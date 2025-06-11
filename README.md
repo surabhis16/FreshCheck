@@ -27,5 +27,6 @@
 | **Auth/Storage**  | Firebase                                            |
 | **Hardware**      | Arduino + sensors                                   |
 | **Generative AI** | Gemini API (Google AI)                              |
+| **Deployment**    | Render                             |
 
 ---
