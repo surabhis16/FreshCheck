@@ -2,8 +2,6 @@
 
 **FreshCheck** is an AI-powered fruit freshness detection system that combines computer vision, sensor data, and generative AI to deliver real-time freshness scores and intelligent recipe suggestions.
 
- **Live Demo**: [https://freshcheck.onrender.com](https://freshcheck.onrender.com)
-
 ---
 
 ## Features
@@ -27,6 +25,5 @@
 | **Auth/Storage**  | Firebase                                            |
 | **Hardware**      | Arduino + sensors                                   |
 | **Generative AI** | Gemini API (Google AI)                              |
-| **Deployment**    | Render                             |
 
 ---
