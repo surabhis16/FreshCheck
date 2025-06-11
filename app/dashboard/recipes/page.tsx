@@ -43,7 +43,10 @@ export default function RecipesPage() {
   const [recipeError, setRecipeError] = useState("")
 
 
-  const GEMINI_API_KEY = ""
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("Missing GEMINI_API_KEY");
+  }
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
   const recipes: Recipe[] = [
     {
