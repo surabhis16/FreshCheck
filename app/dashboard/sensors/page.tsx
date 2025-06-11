@@ -99,8 +99,8 @@ export default function SensorsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Replace with your actual backend URL
-      const response = await fetch("http://localhost:8000/sensors");
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${BASE_URL}/sensors`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
