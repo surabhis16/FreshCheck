@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { History, Search, Filter, Download, Calendar, Loader2 } from "lucide-react"
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore"
-import { db } from "@/lib/firebase" // Adjust this import path to your Firebase config
+import { db } from "@/lib/firebase"
 
 // Firestore data structure
 interface FirestoreDetection {
