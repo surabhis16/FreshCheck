@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 76% 36%;
+    --radius: 0.75rem;
+
+    /* Custom fruit theme colors */
+    --fresh-green: 142 76% 36%;
+    --fresh-green-light: 142 76% 96%;
+    --ripe-orange: 25 95% 53%;
+    --ripe-orange-light: 25 95% 96%;
+    --warning-yellow: 45 93% 47%;
+    --warning-yellow-light: 45 93% 96%;
+    --expired-red: 0 84% 60%;
+    --expired-red-light: 0 84% 96%;
+    --earth-brown: 30 67% 94%;
+    --sage-green: 120 25% 85%;
+    --peach: 25 100% 94%;
+    --mint: 150 100% 94%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142 76% 36%;
+
+    /* Dark mode fruit colors */
+    --fresh-green: 142 76% 45%;
+    --fresh-green-light: 142 76% 15%;
+    --ripe-orange: 25 95% 60%;
+    --ripe-orange-light: 25 95% 15%;
+    --warning-yellow: 45 93% 55%;
+    --warning-yellow-light: 45 93% 15%;
+    --expired-red: 0 84% 65%;
+    --expired-red-light: 0 84% 15%;
+    --earth-brown: 30 67% 15%;
+    --sage-green: 120 25% 20%;
+    --peach: 25 100% 15%;
+    --mint: 150 100% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom gradient backgrounds */
+.gradient-fresh {
+  background: linear-gradient(135deg, hsl(var(--fresh-green-light)), hsl(var(--mint)));
+}
+
+.gradient-warning {
+  background: linear-gradient(135deg, hsl(var(--warning-yellow-light)), hsl(var(--peach)));
+}
+
+.gradient-expired {
+  background: linear-gradient(135deg, hsl(var(--expired-red-light)), hsl(var(--ripe-orange-light)));
+}
+
+.gradient-main {
+  background: linear-gradient(135deg, hsl(var(--fresh-green-light)), hsl(var(--sage-green)), hsl(var(--mint)));
+}
+
+/* Animated gradients */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
