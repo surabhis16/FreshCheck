@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChefHat, Clock, Users, Search, Heart, ExternalLink, Sparkles, Zap, Star, X } from "lucide-react"
+import { ChefHat, Clock, Users, Search, Heart, ExternalLink, Sparkles, Zap, Star, X, MessageCircle, Send, Bot, User, Minimize2, Maximize2 } from "lucide-react"
+import ReactMarkdown from 'react-markdown'
 
 interface Recipe {
   id: string
@@ -33,6 +34,13 @@ interface DetailedRecipe extends Recipe {
   nutritionInfo?: string
 }
 
+interface ChatMessage {
+  id: string
+  type: 'user' | 'bot'
+  content: string
+  timestamp: Date
+}
+
 export default function RecipesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterFreshness, setFilterFreshness] = useState("all")
@@ -42,12 +50,21 @@ export default function RecipesPage() {
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null)
   const [recipeError, setRecipeError] = useState("")
 
+  // Chatbot states
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      type: 'bot',
+      content: "Hi! I'm your AI recipe assistant! 🍳 Ask me about recipes, cooking tips, ingredient substitutions, or anything food-related. How can I help you today?",
+      timestamp: new Date()
+    }
+  ])
+  const [chatInput, setChatInput] = useState("")
+  const [isChatLoading, setIsChatLoading] = useState(false)
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
-  if (!GEMINI_API_KEY) {
-    throw new Error("Missing GEMINI_API_KEY");
-  }
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "your-api-key-here";
 
   const recipes: Recipe[] = [
     {
@@ -176,7 +193,7 @@ export default function RecipesPage() {
         "Zest and juice oranges",
         "Mix wet ingredients",
         "Combine with dry ingredients",
-        "Bake at 350°F for 55 minutes", 0
+        "Bake at 350°F for 55 minutes",
       ],
       isFavorite: false,
       aiGenerated: false,
@@ -185,7 +202,7 @@ export default function RecipesPage() {
   ]
 
   const fetchDetailedRecipe = async (recipe: Recipe) => {
-    setLoadingRecipeId(recipe.id) // Set the specific recipe ID that's loading
+    setLoadingRecipeId(recipe.id)
     setRecipeError("")
 
     try {
@@ -238,7 +255,6 @@ export default function RecipesPage() {
           throw new Error("No valid JSON found in response")
         }
       } catch (parseError) {
-        // Fallback detailed info
         detailedInfo = {
           detailedIngredients: [
             ...recipe.ingredients,
@@ -274,7 +290,79 @@ export default function RecipesPage() {
       console.error('Error fetching recipe details:', error)
       setRecipeError(`Error: ${error.message}`)
     } finally {
-      setLoadingRecipeId(null) // Clear the loading state
+      setLoadingRecipeId(null)
+    }
+  }
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || isChatLoading) return
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: chatInput.trim(),
+      timestamp: new Date()
+    }
+
+    setChatMessages(prev => [...prev, userMessage])
+    setChatInput("")
+    setIsChatLoading(true)
+
+    try {
+      const prompt = `You are a helpful AI recipe assistant. The user is asking: "${userMessage.content}"
+
+      Please provide a helpful, friendly response about recipes, cooking, ingredients, or food-related topics. Keep responses conversational and practical. If asked for recipes, provide clear ingredients and instructions. If it's not food-related, politely redirect to cooking topics.
+
+      Current context: The user is on a fruit recipe website that has recipes for different fruit freshness levels (Fresh, Ripening, Overripe).`
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response')
+      }
+
+      const data = await response.json()
+      const aiResponse = data.candidates[0].content.parts[0].text
+
+      const botMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: aiResponse,
+        timestamp: new Date()
+      }
+
+      setChatMessages(prev => [...prev, botMessage])
+
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment! 🤖",
+        timestamp: new Date()
+      }
+      setChatMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsChatLoading(false)
+    }
+  }
+
+  const handleChatKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendChatMessage()
     }
   }
 
@@ -459,7 +547,6 @@ export default function RecipesPage() {
                 {getFruitEmoji(recipe.fruits[0])}
               </div>
 
-              {/* Rating */}
               <div className="absolute top-3 right-12">
                 <Badge className="bg-black/70 text-white">
                   <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
@@ -467,7 +554,6 @@ export default function RecipesPage() {
                 </Badge>
               </div>
 
-              {/* Favorite Button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -514,9 +600,9 @@ export default function RecipesPage() {
                   className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl"
                   size="sm"
                   onClick={() => fetchDetailedRecipe(recipe)}
-                  disabled={loadingRecipeId === recipe.id} // Only disable if THIS recipe is loading
+                  disabled={loadingRecipeId === recipe.id}
                 >
-                  {loadingRecipeId === recipe.id ? ( // Only show loading for THIS recipe
+                  {loadingRecipeId === recipe.id ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                       Loading...
@@ -619,14 +705,144 @@ export default function RecipesPage() {
         </div>
       )}
 
+      {/* Chatbot Popup */}
+      {isChatOpen && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Card className={`w-96 bg-white dark:bg-gray-800 shadow-2xl border-0 transition-all duration-300 ${isMinimized ? 'h-16' : 'h-96'
+            }`}>
+            <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Recipe Assistant</CardTitle>
+                  <CardDescription className="text-xs">Ask me anything about cooking!</CardDescription>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="h-8 w-8 rounded-full"
+                >
+                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsChatOpen(false)}
+                  className="h-8 w-8 rounded-full"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+
+            {!isMinimized && (
+              <>
+                <CardContent className="flex-1 overflow-y-auto p-4 space-y-3 max-h-64">
+                  {chatMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`flex gap-2 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <div className={`p-2 rounded-full flex-shrink-0 ${message.type === 'user'
+                          ? 'bg-gradient-to-br from-yellow-500 to-orange-600'
+                          : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                          }`}>
+                          {message.type === 'user' ? (
+                            <User className="h-3 w-3 text-white" />
+                          ) : (
+                            <Bot className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                        <div className={`p-3 rounded-2xl ${message.type === 'user'
+                          ? 'bg-gradient-to-br from-yellow-500 to-orange-600 text-white ml-2'
+                          : 'bg-gray-100 dark:bg-gray-700 mr-2'
+                          }`}>
+                          <ReactMarkdown>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex gap-3 justify-start">
+                      <div className="flex gap-2 max-w-[80%]">
+                        <div className="p-2 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-purple-600">
+                          <Bot className="h-3 w-3 text-white" />
+                        </div>
+                        <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-700 mr-2">
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+
+                <div className="p-4 border-t">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Ask about recipes, ingredients, cooking tips..."
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={handleChatKeyPress}
+                      className="flex-1 rounded-xl border-2 border-gray-200 focus:border-blue-400"
+                      disabled={isChatLoading}
+                    />
+                    <Button
+                      onClick={sendChatMessage}
+                      disabled={!chatInput.trim() || isChatLoading}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl px-4"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* Chatbot Toggle Button */}
+      {!isChatOpen && (
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 z-50"
+          size="icon"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      )}
+
+      {/* Empty State */}
       {filteredRecipes.length === 0 && (
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-          <CardContent className="text-center py-12">
-            <ChefHat className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-            <p className="text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">No recipes found</p>
-            <p className="text-gray-500 dark:text-gray-400">
-              Try adjusting your search criteria
+        <Card className="text-center py-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+          <CardContent className="space-y-4">
+            <div className="text-6xl">🔍</div>
+            <h3 className="text-xl font-semibold">No recipes found</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Try adjusting your search criteria or browse all recipes
             </p>
+            <Button
+              onClick={() => {
+                setSearchTerm("")
+                setFilterFreshness("all")
+                setFilterCategory("all")
+              }}
+              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white rounded-xl"
+            >
+              Clear Filters
+            </Button>
           </CardContent>
         </Card>
       )}
