@@ -6,12 +6,12 @@ from torch.utils.data import DataLoader
 from torchvision.models import mobilenet_v2
 import os
 
-# 🧱 1. Paths
+# Paths
 train_dir = "dataset/train"
 val_dir = "dataset/test"
 model_save_path = "fruit_freshness_resnet_small.pth"
 
-# 🔁 2. Data Transforms
+# Data Transforms
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -21,24 +21,24 @@ transform = transforms.Compose([
     )
 ])
 
-# 📦 3. Datasets & Loaders
+# Datasets & Loaders
 train_data = datasets.ImageFolder(train_dir, transform=transform)
 val_data = datasets.ImageFolder(val_dir, transform=transform)
 train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 val_loader = DataLoader(val_data, batch_size=32)
 
-# 🔍 4. Model Setup
+# Model Setup
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = mobilenet_v2(pretrained=True)
 model.classifier[1] = nn.Linear(model.last_channel, len(train_data.classes))
 model = model.to(device)
 
-# ⚙️ 5. Training Setup
+# Training Setup
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-# 🏋️ 6. Training Loop
-for epoch in range(10):  # more if needed
+# Training Loop
+for epoch in range(10): 
     model.train()
     running_loss = 0
     for imgs, labels in train_loader:
@@ -52,6 +52,6 @@ for epoch in range(10):  # more if needed
     
     print(f"Epoch {epoch+1}, Loss: {running_loss:.4f}")
 
-# 💾 7. Save Model
+# Save Model
 torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
