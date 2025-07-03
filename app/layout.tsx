@@ -10,7 +10,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "FreshCheck - AI Fruit Freshness Detection",
   description: "Smart fruit freshness detection with AI-powered insights",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
