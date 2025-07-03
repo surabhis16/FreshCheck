@@ -6,7 +6,7 @@ import torch.nn as nn
 from ultralytics import YOLO
 from torchvision.models import mobilenet_v2
 
-# Load your trained ResNet classifier
+# Load trained classifier
 class_labels = [
     "apple_fresh", "apple_rotten",
     "banana_fresh", "banana_rotten",
@@ -61,13 +61,13 @@ while True:
                 output = model(image_tensor)
                 predicted_class = class_labels[output.argmax().item()]
 
-            # 📦 Draw box and label
+            # Draw box and label
             label = f"{predicted_class}"
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(frame, label, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-    # 🖼️ Show the frame
+    # Show the frame
     cv2.imshow("Fruit Freshness Detector", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
